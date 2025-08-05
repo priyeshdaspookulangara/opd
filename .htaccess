@@ -1,0 +1,8 @@
+# Enable URL Rewriting
+RewriteEngine On
+
+# The following lines would be used for a single entry-point router.
+# For now, we are accessing PHP files directly.
+# RewriteCond %{REQUEST_FILENAME} !-f
+# RewriteCond %{REQUEST_FILENAME} !-d
+# RewriteRule ^ api/v1/index.php [L]

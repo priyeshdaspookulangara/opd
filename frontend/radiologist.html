@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radiologist Dashboard - HIS</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/auth_check.js" defer></script>
+</head>
+<body>
+    <h1>Radiologist Dashboard</h1>
+    <nav>
+        <a href="index.html">Patient Management</a>
+        <a href="admin.html">Admin</a>
+        <a href="doctor.html">Doctor Dashboard</a>
+        <a href="radiologist.html">Radiology Dashboard</a>
+    </nav>
+
+    <div class="container">
+        <h2>Pending Radiology Tests</h2>
+        <table id="pending-radiology-tests-table">
+            <thead>
+                <tr>
+                    <th>Test ID</th>
+                    <th>Patient Name</th>
+                    <th>Test Name</th>
+                    <th>Ordered On</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="pending-radiology-tests-body">
+                <!-- Pending tests will be populated by JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <div id="report-entry-section" class="container" style="display: none;">
+        <h2>Enter Report for Test ID: <span id="report-test-id"></span></h2>
+        <form id="report-entry-form">
+            <input type="hidden" id="report-radiology-order-id" name="radiology_order_id">
+            <div class="form-group">
+                <label for="report">Report:</label>
+                <textarea id="report" name="report" rows="10" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="radiology-notes">Notes:</label>
+                <textarea id="radiology-notes" name="notes" rows="3"></textarea>
+            </div>
+            <button type="submit">Save Report</button>
+        </form>
+        <div id="report-response"></div>
+    </div>
+
+    <script src="js/radiologist.js"></script>
+</body>
+</html>

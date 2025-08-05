@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - HIS</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/auth_check.js" defer></script>
+</head>
+<body>
+    <h1>Admin Panel</h1>
+    <nav>
+        <a href="index.html">Patient Management</a>
+        <a href="admin.html">Admin</a>
+    </nav>
+
+    <div class="container">
+        <h2>Manage Services</h2>
+        <form id="service-form">
+            <input type="hidden" id="service-id" name="service_id">
+            <div class="form-group">
+                <label for="service_name">Service Name:</label>
+                <input type="text" id="service_name" name="service_name" required>
+            </div>
+            <div class="form-group">
+                <label for="description">Description:</label>
+                <textarea id="description" name="description"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="cost">Cost:</label>
+                <input type="number" step="0.01" id="cost" name="cost" required>
+            </div>
+            <button type="submit">Save Service</button>
+            <button type="button" id="cancel-edit-btn" style="display: none;">Cancel Edit</button>
+        </form>
+        <div id="admin-response"></div>
+    </div>
+
+    <div class="container">
+        <h2>Service List</h2>
+        <table id="service-list-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Cost</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="service-list-body">
+                <!-- Service rows will be inserted here by JavaScript -->
+        </tbody>
+    </table>
+</div>
+
+<hr>
+
+<div class="container">
+    <h2>Manage Radiology Tests</h2>
+    <form id="radiology-test-form">
+        <input type="hidden" id="available-radiology-test-id" name="available_radiology_test_id">
+        <div class="form-group">
+            <label for="radiology-test-name">Test Name:</label>
+            <input type="text" id="radiology-test-name" name="test_name" required>
+        </div>
+        <div class="form-group">
+            <label for="radiology-test-description">Description:</label>
+            <textarea id="radiology-test-description" name="description"></textarea>
+        </div>
+        <div class="form-group">
+            <label for="radiology-test-cost">Cost:</label>
+            <input type="number" step="0.01" id="radiology-test-cost" name="cost" required>
+        </div>
+        <div class="form-group">
+            <label for="radiology-test-is-available">
+                <input type="checkbox" id="radiology-test-is-available" name="is_available" checked>
+                Is Available
+            </label>
+        </div>
+        <button type="submit">Save Radiology Test</button>
+        <button type="button" id="cancel-radiology-test-edit-btn" style="display: none;">Cancel Edit</button>
+    </form>
+    <div id="radiology-test-response"></div>
+</div>
+
+<div class="container">
+    <h2>Available Radiology Tests List</h2>
+    <table id="radiology-test-list-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Cost</th>
+                <th>Available</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="radiology-test-list-body">
+            <!-- Radiology Test rows will be inserted here by JavaScript -->
+        </tbody>
+    </table>
+</div>
+
+<hr>
+
+<div class="container">
+    <h2>Manage Lab Tests</h2>
+    <form id="lab-test-form">
+        <input type="hidden" id="available-test-id" name="available_test_id">
+        <div class="form-group">
+            <label for="test_name">Test Name:</label>
+            <input type="text" id="test_name" name="test_name" required>
+        </div>
+        <div class="form-group">
+            <label for="lab-test-description">Description:</label>
+            <textarea id="lab-test-description" name="description"></textarea>
+        </div>
+        <div class="form-group">
+            <label for="lab-test-cost">Cost:</label>
+            <input type="number" step="0.01" id="lab-test-cost" name="cost" required>
+        </div>
+        <div class="form-group">
+            <label for="lab-test-is-available">
+                <input type="checkbox" id="lab-test-is-available" name="is_available" checked>
+                Is Available
+            </label>
+        </div>
+        <button type="submit">Save Lab Test</button>
+        <button type="button" id="cancel-lab-test-edit-btn" style="display: none;">Cancel Edit</button>
+    </form>
+    <div id="lab-test-response"></div>
+</div>
+
+<div class="container">
+    <h2>Available Lab Tests List</h2>
+    <table id="lab-test-list-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Cost</th>
+                <th>Available</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="lab-test-list-body">
+            <!-- Lab Test rows will be inserted here by JavaScript -->
+        </tbody>
+    </table>
+</div>
+
+<hr>
+
+<div class="container">
+    <h2>Manage Pharmacy Inventory</h2>
+    <form id="drug-form">
+        <input type="hidden" id="drug-id" name="drug_id">
+        <div class="form-group">
+            <label for="drug_name">Drug Name:</label>
+            <input type="text" id="drug_name" name="drug_name" required>
+        </div>
+        <div class="form-group">
+            <label for="drug-description">Description:</label>
+            <textarea id="drug-description" name="description"></textarea>
+        </div>
+        <div class="form-group">
+            <label for="cost_per_unit">Cost Per Unit:</label>
+            <input type="number" step="0.01" id="cost_per_unit" name="cost_per_unit" required>
+        </div>
+        <div class="form-group">
+            <label for="stock_quantity">Stock Quantity:</label>
+            <input type="number" id="stock_quantity" name="stock_quantity" required>
+        </div>
+        <button type="submit">Save Drug</button>
+        <button type="button" id="cancel-drug-edit-btn" style="display: none;">Cancel Edit</button>
+    </form>
+    <div id="drug-response"></div>
+</div>
+
+<div class="container">
+    <h2>Drug Inventory List</h2>
+    <table id="drug-list-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Cost/Unit</th>
+                <th>Stock</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="drug-list-body">
+            <!-- Drug rows will be inserted here by JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <script src="js/admin.js"></script>
+
+    <hr>
+
+    <div class="container">
+        <h2>Manage Packages</h2>
+        <form id="package-form">
+            <input type="hidden" id="package-id" name="package_id">
+            <div class="form-group">
+                <label for="package_name">Package Name:</label>
+                <input type="text" id="package_name" name="package_name" required>
+            </div>
+            <div class="form-group">
+                <label for="package-description">Description:</label>
+                <textarea id="package-description" name="description"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="price">Price:</label>
+                <input type="number" step="0.01" id="price" name="price" required>
+            </div>
+            <div class="form-group">
+                <label for="duration_days">Duration (Days):</label>
+                <input type="number" id="duration_days" name="duration_days" required>
+            </div>
+            <div class="form-group">
+                <label>Included Services:</label>
+                <div id="services-checkbox-list" style="max-height: 150px; overflow-y: auto; border: 1px solid #ccc; padding: 10px;">
+                    <!-- Checkboxes will be populated by JavaScript -->
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="is_active">
+                    <input type="checkbox" id="is_active" name="is_active" checked>
+                    Is Active
+                </label>
+            </div>
+            <button type="submit">Save Package</button>
+            <button type="button" id="cancel-package-edit-btn" style="display: none;">Cancel Edit</button>
+        </form>
+        <div id="package-response"></div>
+    </div>
+
+    <div class="container">
+        <h2>Package List</h2>
+        <table id="package-list-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th>Duration</th>
+                    <th>Active</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="package-list-body">
+                <!-- Package rows will be inserted here by JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+<hr>
+
+<div class="container">
+    <h2>Manage Wards & Beds</h2>
+
+    <!-- Ward Management -->
+    <div style="margin-bottom: 30px;">
+        <h3>Wards</h3>
+        <form id="ward-form">
+            <input type="hidden" id="ward-id" name="ward_id">
+            <div class="form-group">
+                <label for="ward_name">Ward Name:</label>
+                <input type="text" id="ward_name" name="ward_name" required>
+            </div>
+            <div class="form-group">
+                <label for="ward-description">Description:</label>
+                <textarea id="ward-description" name="description"></textarea>
+            </div>
+            <button type="submit">Save Ward</button>
+            <button type="button" id="cancel-ward-edit-btn" style="display: none;">Cancel Edit</button>
+        </form>
+        <div id="ward-response"></div>
+        <table id="ward-list-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="ward-list-body"></tbody>
+        </table>
+    </div>
+
+    <!-- Bed Management -->
+    <div>
+        <h3>Beds</h3>
+        <form id="bed-form">
+            <input type="hidden" id="bed-id" name="bed_id">
+            <div class="form-group">
+                <label for="bed_number">Bed Number:</label>
+                <input type="text" id="bed_number" name="bed_number" required>
+            </div>
+            <div class="form-group">
+                <label for="bed-ward-select">Ward:</label>
+                <select id="bed-ward-select" name="ward_id" required></select>
+            </div>
+             <div class="form-group">
+                <label>
+                    <input type="checkbox" id="bed-is-occupied" name="is_occupied">
+                    Is Occupied
+                </label>
+            </div>
+            <button type="submit">Save Bed</button>
+            <button type="button" id="cancel-bed-edit-btn" style="display: none;">Cancel Edit</button>
+        </form>
+        <div id="bed-response"></div>
+        <table id="bed-list-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Bed Number</th>
+                    <th>Ward</th>
+                    <th>Occupied</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="bed-list-body"></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Inpatient Management -->
+<section id="inpatient-management" class="admin-section">
+    <h2>Inpatient Management</h2>
+
+    <!-- Admit Patient Form -->
+    <div class="management-column">
+        <h3>Admit Patient</h3>
+        <form id="admit-patient-form" class="management-form">
+            <div class="form-group">
+                <label for="admit-patient-select">Select Patient:</label>
+                <select id="admit-patient-select" required></select>
+            </div>
+            <div class="form-group">
+                <label for="admit-bed-select">Select Bed:</label>
+                <select id="admit-bed-select" required></select>
+            </div>
+            <div class="form-group">
+                <label for="admission_date">Admission Date:</label>
+                <input type="datetime-local" id="admission_date" required>
+            </div>
+            <div class="form-group">
+                <label for="admission-diagnosis">Initial Diagnosis:</label>
+                <textarea id="admission-diagnosis"></textarea>
+            </div>
+            <button type="submit" class="btn">Admit Patient</button>
+        </form>
+        <div id="admission-response" class="response-message"></div>
+    </div>
+
+    <!-- Current Inpatients List -->
+    <div class="management-column-full">
+        <h3>Current Inpatients</h3>
+        <table id="inpatients-list-table" class="data-table">
+            <thead>
+                <tr>
+                    <th>Admission ID</th>
+                    <th>Patient Name</th>
+                    <th>Ward</th>
+                    <th>Bed</th>
+                    <th>Admission Date</th>
+                    <th>Diagnosis</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="inpatients-list-body">
+                <!-- Admitted patients will be loaded here -->
+            </tbody>
+        </table>
+    </div>
+</section>
+</body>
+</html>

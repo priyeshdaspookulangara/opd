@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Dashboard - HIS</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/auth_check.js" defer></script>
+</head>
+<body>
+    <h1>Doctor Dashboard</h1>
+    <nav>
+        <a href="index.html">Patient Management</a>
+        <a href="admin.html">Admin</a>
+        <a href="doctor.html">Doctor Dashboard</a>
+    </nav>
+
+    <div class="container">
+        <h2>Patient Queue</h2>
+        <table id="patient-queue-table">
+            <thead>
+                <tr>
+                    <th>OP Number</th>
+                    <th>Name</th>
+                    <th>Visit Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="patient-queue-body">
+                <!-- Queue will be populated by JavaScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <div id="consultation-section" class="container" style="display: none;">
+        <h2>Consultation for <span id="consult-patient-name"></span></h2>
+        <input type="hidden" id="consult-op-id">
+
+        <h3>Vitals</h3>
+        <div id="consult-vitals">
+            <!-- Vitals will be loaded here -->
+        </div>
+
+        <hr>
+
+        <h3>New Consultation</h3>
+        <form id="consultation-form">
+            <div class="form-group">
+                <label for="diagnosis">Diagnosis:</label>
+                <textarea id="diagnosis" name="diagnosis" rows="4" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="prescription">Prescription:</label>
+                <textarea id="prescription" name="prescription" rows="4" required></textarea>
+            </div>
+            <button type="submit">Save Consultation</button>
+        </form>
+        <div id="consultation-response"></div>
+
+        <div id="dispense-section" style="display: none; margin-top: 20px;">
+            <hr>
+            <h3>Dispense Medication</h3>
+            <form id="dispense-form">
+                <input type="hidden" id="dispense-op-id">
+                <input type="hidden" id="dispense-patient-id">
+                <div class="form-group">
+                    <label for="drug-select">Select Drug:</label>
+                    <select id="drug-select" required>
+                        <!-- Drug options will be populated by JavaScript -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="quantity">Quantity:</label>
+                    <input type="number" id="quantity" min="1" value="1" required>
+                </div>
+                <button type="submit">Dispense and Bill</button>
+            </form>
+            <div id="dispense-response"></div>
+        </div>
+
+        <div id="lab-test-section" style="display: none; margin-top: 20px;">
+            <hr>
+            <h3>Order Lab Test</h3>
+            <form id="order-lab-test-form">
+                <input type="hidden" id="order-op-id">
+                <input type="hidden" id="order-patient-id">
+                <div class="form-group">
+                    <label for="lab-test-select">Select Test:</label>
+                    <select id="lab-test-select" required>
+                        <!-- Lab test options will be populated by JavaScript -->
+                    </select>
+                </div>
+                <button type="submit">Order Test and Bill</button>
+            </form>
+            <div id="order-lab-test-response"></div>
+        </div>
+    </div>
+
+    <script src="js/doctor.js"></script>
+</body>
+</html>
