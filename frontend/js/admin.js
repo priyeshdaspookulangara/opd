@@ -1,4 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize User Management
+    initializeUserManagement();
     // Initialize Service Management
     initializeServiceManagement();
     // Initialize Package Management
@@ -14,6 +16,146 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize Inpatient Management
     initializeInpatientManagement();
 });
+
+// =================================================================
+// USER MANAGEMENT
+// =================================================================
+const USER_API_URL = '../api/v1/users/';
+
+// User form elements
+const userForm = document.getElementById('user-form');
+const userIdField = document.getElementById('user-id');
+const firstNameField = document.getElementById('first_name');
+const lastNameField = document.getElementById('last_name');
+const usernameField = document.getElementById('username');
+const passwordField = document.getElementById('password');
+const roleField = document.getElementById('role');
+const userIsActiveCheckbox = document.getElementById('user-is-active');
+const cancelUserBtn = document.getElementById('cancel-user-edit-btn');
+const userResponseDiv = document.getElementById('user-response');
+
+function initializeUserManagement() {
+    getUsers();
+    userForm.addEventListener('submit', handleUserFormSubmit);
+    document.getElementById('user-list-table').addEventListener('click', handleUserTableClick);
+    cancelUserBtn.addEventListener('click', resetUserForm);
+}
+
+function getUsers() {
+    fetch(USER_API_URL + 'read.php')
+        .then(response => response.json())
+        .then(content => {
+            const tableBody = document.getElementById('user-list-body');
+            tableBody.innerHTML = '';
+            if (content.data && content.data.length > 0) {
+                content.data.forEach(user => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${user.user_id}</td>
+                        <td>${user.first_name} ${user.last_name}</td>
+                        <td>${user.username}</td>
+                        <td>${user.role}</td>
+                        <td>${user.is_active ? 'Yes' : 'No'}</td>
+                        <td>
+                            <button class="edit-user-btn" data-id="${user.user_id}" data-first_name="${user.first_name}" data-last_name="${user.last_name}" data-username="${user.username}" data-role="${user.role}" data-is_active="${user.is_active}">Edit</button>
+                            <button class="delete-user-btn" data-id="${user.user_id}">Delete</button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } else {
+                tableBody.innerHTML = '<tr><td colspan="6">No users found.</td></tr>';
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching users:', error);
+            const tableBody = document.getElementById('user-list-body');
+            tableBody.innerHTML = '<tr><td colspan="6">Error loading users. Check console for details.</td></tr>';
+        });
+}
+
+function handleUserFormSubmit(event) {
+    event.preventDefault();
+    const userId = userIdField.value;
+    const userData = {
+        first_name: firstNameField.value,
+        last_name: lastNameField.value,
+        username: usernameField.value,
+        role: roleField.value,
+        is_active: userIsActiveCheckbox.checked,
+        password: passwordField.value // Include password, API will handle if it's empty
+    };
+
+    let url = USER_API_URL + 'create.php';
+    let method = 'POST';
+
+    if (userId) {
+        userData.user_id = userId;
+        url = USER_API_URL + 'update.php';
+        method = 'PUT';
+    }
+
+    fetch(url, {
+        method: method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        userResponseDiv.innerHTML = `<p style="color:green;">${data.message}</p>`;
+        resetUserForm();
+        getUsers();
+    })
+    .catch(error => {
+        userResponseDiv.innerHTML = `<p style="color:red;">Error: ${error.message}</p>`;
+    });
+}
+
+function handleUserTableClick(event) {
+    const target = event.target;
+    const id = target.getAttribute('data-id');
+
+    if (target.classList.contains('edit-user-btn')) {
+        userIdField.value = id;
+        firstNameField.value = target.getAttribute('data-first_name');
+        lastNameField.value = target.getAttribute('data-last_name');
+        usernameField.value = target.getAttribute('data-username');
+        roleField.value = target.getAttribute('data-role');
+        userIsActiveCheckbox.checked = (target.getAttribute('data-is_active') == '1');
+        passwordField.value = ''; // Clear password field
+        cancelUserBtn.style.display = 'inline-block';
+        userForm.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    if (target.classList.contains('delete-user-btn')) {
+        // Prevent deleting user with ID 1 (assuming it's the primary admin)
+        if (id === '1') {
+            alert('Cannot delete the primary admin user.');
+            return;
+        }
+
+        if (confirm(`Are you sure you want to delete user ID ${id}? This action cannot be undone.`)) {
+            fetch(USER_API_URL + 'delete.php', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: id })
+            })
+            .then(response => response.json())
+            .then(data => {
+                userResponseDiv.innerHTML = `<p style="color:green;">${data.message}</p>`;
+                getUsers();
+            });
+        }
+    }
+}
+
+function resetUserForm() {
+    userForm.reset();
+    userIdField.value = '';
+    userIsActiveCheckbox.checked = true;
+    cancelUserBtn.style.display = 'none';
+    userResponseDiv.innerHTML = '';
+}
 
 
 // =================================================================
