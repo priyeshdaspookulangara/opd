@@ -15,6 +15,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeWardAndBedManagement();
     // Initialize Inpatient Management
     initializeInpatientManagement();
+    // Initialize Reporting
+    initializeReporting();
 });
 
 // =================================================================
@@ -155,6 +157,133 @@ function resetUserForm() {
     userIsActiveCheckbox.checked = true;
     cancelUserBtn.style.display = 'none';
     userResponseDiv.innerHTML = '';
+}
+
+// =================================================================
+// REPORTING
+// =================================================================
+const REPORTING_API_URL = '../api/v1/reports/';
+
+function initializeReporting() {
+    const reportingForm = document.getElementById('reporting-form');
+    reportingForm.addEventListener('submit', handleReportGeneration);
+
+    // Show/hide date pickers based on report type
+    const reportTypeSelect = document.getElementById('report-type');
+    reportTypeSelect.addEventListener('change', () => {
+        const datePickers = document.getElementById('start-date').parentElement.parentElement;
+        if (reportTypeSelect.value === 'patient_demographics') {
+            datePickers.style.display = 'none';
+        } else {
+            datePickers.style.display = 'block';
+        }
+    });
+}
+
+function handleReportGeneration(event) {
+    event.preventDefault();
+    const reportType = document.getElementById('report-type').value;
+    const startDate = document.getElementById('start-date').value;
+    const endDate = document.getElementById('end-date').value;
+    const reportOutputDiv = document.getElementById('report-output');
+    reportOutputDiv.innerHTML = '<h3>Generating report...</h3>';
+
+    if (!reportType) {
+        reportOutputDiv.innerHTML = '<h3 style="color:red;">Please select a report type.</h3>';
+        return;
+    }
+
+    let fetchUrl = `${REPORTING_API_URL}${reportType}_report.php`;
+
+    // Add date range for relevant reports
+    if (reportType !== 'patient_demographics') {
+        if (!startDate || !endDate) {
+            reportOutputDiv.innerHTML = '<h3 style="color:red;">Please select a start and end date.</h3>';
+            return;
+        }
+        fetchUrl += `?start_date=${startDate}&end_date=${endDate}`;
+    }
+
+
+    fetch(fetchUrl)
+        .then(response => response.json())
+        .then(content => {
+            if (content.message && !content.data) {
+                 reportOutputDiv.innerHTML = `<p>${content.message}</p>`;
+                 return;
+            }
+            displayReport(reportType, content);
+        })
+        .catch(error => {
+            console.error('Error fetching report:', error);
+            reportOutputDiv.innerHTML = `<h3 style="color:red;">Error generating report. See console for details.</h3>`;
+        });
+}
+
+function displayReport(reportType, content) {
+    const reportOutputDiv = document.getElementById('report-output');
+    let tableHtml = '';
+    let summaryHtml = '';
+
+    switch (reportType) {
+        case 'billing':
+            tableHtml = `
+                <h2>Billing Report</h2>
+                <p>From ${content.summary.start_date} to ${content.summary.end_date}</p>
+                <p><strong>Total Revenue: $${content.summary.total_revenue.toFixed(2)}</strong> from ${content.summary.total_records} records.</p>
+                <table class="data-table">
+                    <thead><tr><th>Bill ID</th><th>Patient</th><th>Description</th><th>Amount</th><th>Date</th></tr></thead>
+                    <tbody>
+                        ${content.data.map(item => `
+                            <tr>
+                                <td>${item.bill_id}</td>
+                                <td>${item.patient_name}</td>
+                                <td>${item.description}</td>
+                                <td>$${parseFloat(item.amount).toFixed(2)}</td>
+                                <td>${new Date(item.bill_date).toLocaleDateString()}</td>
+                            </tr>`).join('')}
+                    </tbody>
+                </table>`;
+            break;
+        case 'admissions':
+             tableHtml = `
+                <h2>Admissions Report</h2>
+                <p>From ${content.summary.start_date} to ${content.summary.end_date}</p>
+                <p><strong>Total Admissions: ${content.summary.total_admissions}</strong> | <strong>Total Discharged: ${content.summary.total_discharged}</strong></p>
+                <table class="data-table">
+                    <thead><tr><th>Adm. ID</th><th>Patient</th><th>Ward</th><th>Bed</th><th>Admission Date</th><th>Discharge Date</th></tr></thead>
+                    <tbody>
+                        ${content.data.map(item => `
+                            <tr>
+                                <td>${item.admission_id}</td>
+                                <td>${item.patient_name}</td>
+                                <td>${item.ward_name}</td>
+                                <td>${item.bed_number}</td>
+                                <td>${new Date(item.admission_date).toLocaleString()}</td>
+                                <td>${item.discharge_date ? new Date(item.discharge_date).toLocaleString() : 'N/A'}</td>
+                            </tr>`).join('')}
+                    </tbody>
+                </table>`;
+            break;
+        case 'patient_demographics':
+             tableHtml = `
+                <h2>Patient Demographics Report</h2>
+                 <p><strong>Total Patients: ${content.summary.total_patients}</strong> | <strong>Overall Average Age: ${content.summary.overall_average_age} years</strong></p>
+                <table class="data-table">
+                    <thead><tr><th>Gender</th><th>Patient Count</th><th>Average Age (years)</th></tr></thead>
+                    <tbody>
+                        ${content.data.map(item => `
+                            <tr>
+                                <td>${item.gender}</td>
+                                <td>${item.patient_count}</td>
+                                <td>${item.average_age}</td>
+                            </tr>`).join('')}
+                    </tbody>
+                </table>`;
+            break;
+    }
+
+    reportOutputDiv.innerHTML = tableHtml;
 }
 
 
