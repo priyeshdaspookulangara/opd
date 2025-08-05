@@ -1,4 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Initialize User Management
+    initializeUserManagement();
     // Initialize Service Management
     initializeServiceManagement();
     // Initialize Package Management
@@ -13,7 +15,276 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeWardAndBedManagement();
     // Initialize Inpatient Management
     initializeInpatientManagement();
+    // Initialize Reporting
+    initializeReporting();
 });
+
+// =================================================================
+// USER MANAGEMENT
+// =================================================================
+const USER_API_URL = '../api/v1/users/';
+
+// User form elements
+const userForm = document.getElementById('user-form');
+const userIdField = document.getElementById('user-id');
+const firstNameField = document.getElementById('first_name');
+const lastNameField = document.getElementById('last_name');
+const usernameField = document.getElementById('username');
+const passwordField = document.getElementById('password');
+const roleField = document.getElementById('role');
+const userIsActiveCheckbox = document.getElementById('user-is-active');
+const cancelUserBtn = document.getElementById('cancel-user-edit-btn');
+const userResponseDiv = document.getElementById('user-response');
+
+function initializeUserManagement() {
+    getUsers();
+    userForm.addEventListener('submit', handleUserFormSubmit);
+    document.getElementById('user-list-table').addEventListener('click', handleUserTableClick);
+    cancelUserBtn.addEventListener('click', resetUserForm);
+}
+
+function getUsers() {
+    fetch(USER_API_URL + 'read.php')
+        .then(response => response.json())
+        .then(content => {
+            const tableBody = document.getElementById('user-list-body');
+            tableBody.innerHTML = '';
+            if (content.data && content.data.length > 0) {
+                content.data.forEach(user => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${user.user_id}</td>
+                        <td>${user.first_name} ${user.last_name}</td>
+                        <td>${user.username}</td>
+                        <td>${user.role}</td>
+                        <td>${user.is_active ? 'Yes' : 'No'}</td>
+                        <td>
+                            <button class="edit-user-btn" data-id="${user.user_id}" data-first_name="${user.first_name}" data-last_name="${user.last_name}" data-username="${user.username}" data-role="${user.role}" data-is_active="${user.is_active}">Edit</button>
+                            <button class="delete-user-btn" data-id="${user.user_id}">Delete</button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            } else {
+                tableBody.innerHTML = '<tr><td colspan="6">No users found.</td></tr>';
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching users:', error);
+            const tableBody = document.getElementById('user-list-body');
+            tableBody.innerHTML = '<tr><td colspan="6">Error loading users. Check console for details.</td></tr>';
+        });
+}
+
+function handleUserFormSubmit(event) {
+    event.preventDefault();
+    const userId = userIdField.value;
+    const userData = {
+        first_name: firstNameField.value,
+        last_name: lastNameField.value,
+        username: usernameField.value,
+        role: roleField.value,
+        is_active: userIsActiveCheckbox.checked,
+        password: passwordField.value // Include password, API will handle if it's empty
+    };
+
+    let url = USER_API_URL + 'create.php';
+    let method = 'POST';
+
+    if (userId) {
+        userData.user_id = userId;
+        url = USER_API_URL + 'update.php';
+        method = 'PUT';
+    }
+
+    fetch(url, {
+        method: method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        userResponseDiv.innerHTML = `<p style="color:green;">${data.message}</p>`;
+        resetUserForm();
+        getUsers();
+    })
+    .catch(error => {
+        userResponseDiv.innerHTML = `<p style="color:red;">Error: ${error.message}</p>`;
+    });
+}
+
+function handleUserTableClick(event) {
+    const target = event.target;
+    const id = target.getAttribute('data-id');
+
+    if (target.classList.contains('edit-user-btn')) {
+        userIdField.value = id;
+        firstNameField.value = target.getAttribute('data-first_name');
+        lastNameField.value = target.getAttribute('data-last_name');
+        usernameField.value = target.getAttribute('data-username');
+        roleField.value = target.getAttribute('data-role');
+        userIsActiveCheckbox.checked = (target.getAttribute('data-is_active') == '1');
+        passwordField.value = ''; // Clear password field
+        cancelUserBtn.style.display = 'inline-block';
+        userForm.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    if (target.classList.contains('delete-user-btn')) {
+        // Prevent deleting user with ID 1 (assuming it's the primary admin)
+        if (id === '1') {
+            alert('Cannot delete the primary admin user.');
+            return;
+        }
+
+        if (confirm(`Are you sure you want to delete user ID ${id}? This action cannot be undone.`)) {
+            fetch(USER_API_URL + 'delete.php', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: id })
+            })
+            .then(response => response.json())
+            .then(data => {
+                userResponseDiv.innerHTML = `<p style="color:green;">${data.message}</p>`;
+                getUsers();
+            });
+        }
+    }
+}
+
+function resetUserForm() {
+    userForm.reset();
+    userIdField.value = '';
+    userIsActiveCheckbox.checked = true;
+    cancelUserBtn.style.display = 'none';
+    userResponseDiv.innerHTML = '';
+}
+
+// =================================================================
+// REPORTING
+// =================================================================
+const REPORTING_API_URL = '../api/v1/reports/';
+
+function initializeReporting() {
+    const reportingForm = document.getElementById('reporting-form');
+    reportingForm.addEventListener('submit', handleReportGeneration);
+
+    // Show/hide date pickers based on report type
+    const reportTypeSelect = document.getElementById('report-type');
+    reportTypeSelect.addEventListener('change', () => {
+        const datePickers = document.getElementById('start-date').parentElement.parentElement;
+        if (reportTypeSelect.value === 'patient_demographics') {
+            datePickers.style.display = 'none';
+        } else {
+            datePickers.style.display = 'block';
+        }
+    });
+}
+
+function handleReportGeneration(event) {
+    event.preventDefault();
+    const reportType = document.getElementById('report-type').value;
+    const startDate = document.getElementById('start-date').value;
+    const endDate = document.getElementById('end-date').value;
+    const reportOutputDiv = document.getElementById('report-output');
+    reportOutputDiv.innerHTML = '<h3>Generating report...</h3>';
+
+    if (!reportType) {
+        reportOutputDiv.innerHTML = '<h3 style="color:red;">Please select a report type.</h3>';
+        return;
+    }
+
+    let fetchUrl = `${REPORTING_API_URL}${reportType}_report.php`;
+
+    // Add date range for relevant reports
+    if (reportType !== 'patient_demographics') {
+        if (!startDate || !endDate) {
+            reportOutputDiv.innerHTML = '<h3 style="color:red;">Please select a start and end date.</h3>';
+            return;
+        }
+        fetchUrl += `?start_date=${startDate}&end_date=${endDate}`;
+    }
+
+
+    fetch(fetchUrl)
+        .then(response => response.json())
+        .then(content => {
+            if (content.message && !content.data) {
+                 reportOutputDiv.innerHTML = `<p>${content.message}</p>`;
+                 return;
+            }
+            displayReport(reportType, content);
+        })
+        .catch(error => {
+            console.error('Error fetching report:', error);
+            reportOutputDiv.innerHTML = `<h3 style="color:red;">Error generating report. See console for details.</h3>`;
+        });
+}
+
+function displayReport(reportType, content) {
+    const reportOutputDiv = document.getElementById('report-output');
+    let tableHtml = '';
+    let summaryHtml = '';
+
+    switch (reportType) {
+        case 'billing':
+            tableHtml = `
+                <h2>Billing Report</h2>
+                <p>From ${content.summary.start_date} to ${content.summary.end_date}</p>
+                <p><strong>Total Revenue: $${content.summary.total_revenue.toFixed(2)}</strong> from ${content.summary.total_records} records.</p>
+                <table class="data-table">
+                    <thead><tr><th>Bill ID</th><th>Patient</th><th>Description</th><th>Amount</th><th>Date</th></tr></thead>
+                    <tbody>
+                        ${content.data.map(item => `
+                            <tr>
+                                <td>${item.bill_id}</td>
+                                <td>${item.patient_name}</td>
+                                <td>${item.description}</td>
+                                <td>$${parseFloat(item.amount).toFixed(2)}</td>
+                                <td>${new Date(item.bill_date).toLocaleDateString()}</td>
+                            </tr>`).join('')}
+                    </tbody>
+                </table>`;
+            break;
+        case 'admissions':
+             tableHtml = `
+                <h2>Admissions Report</h2>
+                <p>From ${content.summary.start_date} to ${content.summary.end_date}</p>
+                <p><strong>Total Admissions: ${content.summary.total_admissions}</strong> | <strong>Total Discharged: ${content.summary.total_discharged}</strong></p>
+                <table class="data-table">
+                    <thead><tr><th>Adm. ID</th><th>Patient</th><th>Ward</th><th>Bed</th><th>Admission Date</th><th>Discharge Date</th></tr></thead>
+                    <tbody>
+                        ${content.data.map(item => `
+                            <tr>
+                                <td>${item.admission_id}</td>
+                                <td>${item.patient_name}</td>
+                                <td>${item.ward_name}</td>
+                                <td>${item.bed_number}</td>
+                                <td>${new Date(item.admission_date).toLocaleString()}</td>
+                                <td>${item.discharge_date ? new Date(item.discharge_date).toLocaleString() : 'N/A'}</td>
+                            </tr>`).join('')}
+                    </tbody>
+                </table>`;
+            break;
+        case 'patient_demographics':
+             tableHtml = `
+                <h2>Patient Demographics Report</h2>
+                 <p><strong>Total Patients: ${content.summary.total_patients}</strong> | <strong>Overall Average Age: ${content.summary.overall_average_age} years</strong></p>
+                <table class="data-table">
+                    <thead><tr><th>Gender</th><th>Patient Count</th><th>Average Age (years)</th></tr></thead>
+                    <tbody>
+                        ${content.data.map(item => `
+                            <tr>
+                                <td>${item.gender}</td>
+                                <td>${item.patient_count}</td>
+                                <td>${item.average_age}</td>
+                            </tr>`).join('')}
+                    </tbody>
+                </table>`;
+            break;
+    }
+
+    reportOutputDiv.innerHTML = tableHtml;
+}
 
 
 // =================================================================
