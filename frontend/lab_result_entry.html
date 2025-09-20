@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enter Lab Result - HIS</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/auth_check.js" defer></script>
+</head>
+<body>
+    <h1>Enter Lab Result</h1>
+    <nav>
+        <a href="lab_technician.html">Back to Pending Tests</a>
+    </nav>
+
+    <div id="result-entry-section" class="container">
+        <h2>Enter Result for Test ID: <span id="result-test-id"></span></h2>
+        <form id="result-entry-form">
+            <input type="hidden" id="result-lab-test-id" name="lab_test_id">
+            <div class="form-group">
+                <label for="result">Result:</label>
+                <textarea id="result" name="result" rows="4" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="notes">Notes:</label>
+                <textarea id="notes" name="notes" rows="2"></textarea>
+            </div>
+            <button type="submit">Save Result</button>
+        </form>
+        <div id="result-response"></div>
+    </div>
+
+    <script src="js/lab_result_entry.js"></script>
+</body>
+</html>
